@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+sqlalchemy
+aiomysql
+pydantic-settings
+pydantic[email]
+uvicorn[h2]
+cryptography

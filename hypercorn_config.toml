@@ -1,0 +1,4 @@
+bind = ["0.0.0.0:8000", "127.0.0.1:8000"]
+certfile = "cert.pem"
+keyfile = "key.pem"
+use_http2 = true
