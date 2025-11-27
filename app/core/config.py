@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     ALGORITHM: str = Field("HS256", env="ALGORITHM")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(30, env="ACCESS_TOKEN_EXPIRE_MINUTES")
     REFRESH_TOKEN_EXPIRE_DAYS: int = Field(7, env="REFRESH_TOKEN_EXPIRE_DAYS")
+    KAFKA_NETWORK: str = Field(..., env="KAFKA_NETWORK")
+    TOPIC_NAME: str = Field(..., env="TOPIC_NAME")
 
     # ✅ Proper v2 config syntax
     model_config = SettingsConfigDict(

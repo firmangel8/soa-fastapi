@@ -6,6 +6,20 @@ from app.core.database import get_db
 from app.models.borrowed_book import BorrowedBook
 from app.schemas.borrowed_book import BorrowedBookCreate, BorrowedBookUpdate, BorrowedBookRead
 
+import dotenv
+from app.helper.payload import delivery_report
+import msgpack
+from confluent_kafka import Producer
+
+from app.core.config import settings
+
+TOPIC_NAME = settings.TOPIC_NAME
+
+kafka_config = {
+    'bootstrap.servers': settings.KAFKA_NETWORK,
+}
+producer = Producer(kafka_config)
+
 router = APIRouter()
 
 @router.get("/", response_model=list[BorrowedBookRead])
@@ -28,10 +42,21 @@ async def get_borrowed_book(borrow_id: int, db: AsyncSession = Depends(get_db)):
 
 @router.post("/", response_model=BorrowedBookRead, status_code=status.HTTP_201_CREATED)
 async def create_borrowed_book(payload: BorrowedBookCreate, db: AsyncSession = Depends(get_db)):
+    serialized_payload = payload.json()
     new_borrowed_book = BorrowedBook(**payload.dict())
     db.add(new_borrowed_book)
     await db.commit()
     await db.refresh(new_borrowed_book)
+    # send data to KAFKA_NETWORK
+    data = {
+        "topic": settings.TOPIC_NAME,
+        "message": serialized_payload,
+        "sender": "msg-pack-agent"
+    }
+    encoded_data = msgpack.packb(data, use_bin_type=True)
+    producer.produce(TOPIC_NAME, encoded_data, on_delivery=delivery_report)
+    producer.poll(0)
+    producer.flush()
     return new_borrowed_book
 
 
